@@ -6,7 +6,7 @@ RAG工具包裝器 - 將Pinecone RAG功能包裝為LangChain工具
 import json
 from typing import List, Dict, Optional
 from langchain_core.tools import tool
-from pinecone_client import PineconeClient
+from ..client.pinecone_client import PineconeClient
 
 
 class AstrologyRAGTool:

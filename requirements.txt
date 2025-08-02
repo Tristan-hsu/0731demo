@@ -16,6 +16,9 @@ python-multipart>=0.0.6
 pinecone>=5.0.0
 openai>=1.0.0
 
+# Astrology and natal chart generation
+natal>=0.9.0
+
 # Environment and configuration
 python-dotenv>=1.0.0
 

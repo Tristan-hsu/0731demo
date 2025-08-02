@@ -7,15 +7,20 @@ import asyncio
 import json
 import time
 import traceback
+import sys
+import os
 from datetime import datetime
 from typing import Dict, List, Optional, Any
+
+# Add current directory to Python path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from quart import Quart, request, Response
 from quart_cors import cors
 import uvicorn
 
 # Local imports
-from enhanced_astro_agent import get_enhanced_agent, initialize_agent
+from agents.enhanced_astro_agent import get_enhanced_agent, initialize_agent
 
 
 # Global variables

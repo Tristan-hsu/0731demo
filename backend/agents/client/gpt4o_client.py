@@ -5,9 +5,12 @@ Based on the existing llm_example.py patterns.
 
 import asyncio
 from typing import AsyncGenerator, List, Dict, Optional
-from fixed_openai_clients import AsyncAzureOpenAI
+from .fixed.fixed_openai_clients import AsyncAzureOpenAI
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
 
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../..'))
 from config import config
 
 

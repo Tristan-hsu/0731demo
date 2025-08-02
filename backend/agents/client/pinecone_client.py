@@ -9,9 +9,12 @@ from typing import List, Dict, Optional
 from concurrent.futures import ThreadPoolExecutor
 import json
 
-from fixed_openai_clients import AzureOpenAI, AsyncAzureOpenAI
+from .fixed.fixed_openai_clients import AzureOpenAI, AsyncAzureOpenAI
 from pinecone import Pinecone
 
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../..'))
 from config import config
 
 

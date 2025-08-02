@@ -6,7 +6,7 @@ Enhanced Astro Agent - 整合LangGraph ReActAgent + MCP工具 + RAG檢索
 import json
 import asyncio
 import os
-from typing import List, Dict, Optional, Any, AsyncGenerator
+from typing import List, Dict, Any, AsyncGenerator
 from pathlib import Path
 
 # LangGraph and LangChain imports
@@ -22,10 +22,9 @@ except ImportError:
     MultiServerMCPClient = None
 
 # Local imports
-from gpt4o_client import GPT4oClient, initialize_gpt4o_client
-from rag_tool import get_rag_tools
-from chart_generator import get_chart_tools
-from pinecone_client import PineconeClient
+from .tools.rag_tool import get_rag_tools
+from .client.pinecone_client import PineconeClient
+from .tools.natal_tool import natal_figure
 
 
 class EnhancedAstroAgent:
@@ -49,10 +48,11 @@ class EnhancedAstroAgent:
     def _load_system_prompt(self):
         """載入astrology_mcp.json系統提示"""
         try:
-            with open("astrology_mcp.json", "r", encoding="utf-8") as file:
+            prompt_path = os.path.join(os.path.dirname(__file__), "prompts", "astrology_mcp.json")
+            with open(prompt_path, "r", encoding="utf-8") as file:
                 loaded_data = json.load(file)
                 self.system_prompt = json.dumps(loaded_data, ensure_ascii=False, indent=2)
-                print(self.system_prompt)
+                print(f"✅ 系統提示載入成功: {len(self.system_prompt)} 字符")
         except Exception as e:
             print(f"Warning: Failed to load astrology_mcp.json: {e}")
             self.system_prompt = "You are a professional astrologer assistant."
@@ -103,7 +103,7 @@ class EnhancedAstroAgent:
             available_tools = {}
 
             # 檢查web-search工具
-            web_search_path = Path("web-search/build/index.js")
+            web_search_path = Path(os.path.join(os.path.dirname(__file__), "MCP", "web-search", "build", "index.js"))
             if web_search_path.exists() and os.getenv("SEARCH_API_KEY"):
                 available_tools["web_search"] = {
                     "command": "node",
@@ -118,7 +118,7 @@ class EnhancedAstroAgent:
                 print("⚠️ web-search工具不可用（文件不存在或缺少API密鑰）")
 
             # 檢查AstroMCP工具（使用構建後的文件）
-            astro_dist_path = Path("AstroMCP/dist/main.js")
+            astro_dist_path = Path(os.path.join(os.path.dirname(__file__), "MCP", "AstroMCP", "dist", "main.js"))
             if astro_dist_path.exists():
                 available_tools["astro_mcp"] = {
                     "command": "node",
@@ -127,11 +127,27 @@ class EnhancedAstroAgent:
                 }
                 print(f"✅ 發現AstroMCP工具: {astro_dist_path}")
             else:
-                astro_src_path = Path("AstroMCP/index.ts")
+                astro_src_path = Path(os.path.join(os.path.dirname(__file__), "MCP", "AstroMCP", "index.ts"))
                 if astro_src_path.exists():
-                    print("⚠️ AstroMCP源文件存在但未構建，請運行: cd AstroMCP && bun run build")
+                    print("⚠️ AstroMCP源文件存在但未構建，請運行: cd backend/agents/MCP/AstroMCP && npm run build")
                 else:
                     print("⚠️ AstroMCP工具不可用")
+
+            # # 檢查Natal MCP工具（Python）
+            # natal_mcp_path = Path("natal_mcp/run.py")
+            # venv_python = Path("venv312/Scripts/python.exe")
+            # if natal_mcp_path.exists() and venv_python.exists():
+            #     available_tools["natal_mcp"] = {
+            #         "command": str(venv_python.absolute()),
+            #         "args": [str(natal_mcp_path.absolute())],
+            #         "transport": "stdio"
+            #     }
+            #     print(f"✅ 發現Natal MCP工具: {natal_mcp_path}")
+            # else:
+            #     if not natal_mcp_path.exists():
+            #         print("⚠️ Natal MCP工具不可用（文件不存在）")
+            #     if not venv_python.exists():
+            #         print("⚠️ Python 3.12虛擬環境不可用")
 
             if available_tools:
                 # 初始化MCP客戶端
@@ -151,9 +167,11 @@ class EnhancedAstroAgent:
             # 載入RAG工具
             self.rag_tools = get_rag_tools()
 
+            # 添加natal chart工具
+            self.rag_tools.append(natal_figure)
+
             # 載入星圖生成工具
-            chart_tools = get_chart_tools()
-            self.rag_tools.extend(chart_tools)
+            # self.rag_tools.extend(chart_tools)
 
             print(f"✅ RAG和星圖工具初始化成功，載入 {len(self.rag_tools)} 個工具")
         except Exception as e:
@@ -317,7 +335,7 @@ if __name__ == "__main__":
         
         # 測試查詢
         test_queries = [
-            "請幫我分析1992年12月18日下午3點在台北出生的星盤"
+            "請幫我分析2000年1月18日下午7點在台北出生的星盤"
         ]
         
         for query in test_queries:
@@ -325,11 +343,11 @@ if __name__ == "__main__":
             print("🔄 開始流式回應：")
             print("-" * 50)
             
-            # 使用流式處理
-            async for chunk in agent.astream(query):
-                print(chunk, end="", flush=True)
+            # # 使用流式處理
+            # async for chunk in agent.astream(query):
+            #     print(chunk, end="", flush=True)
             
-            print("\n" + "-" * 50)
+            # print("\n" + "-" * 50)
     
     # 運行測試
     asyncio.run(test_agent_stream())
