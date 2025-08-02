@@ -1,0 +1,47 @@
+{
+  "name": "astrology-mcp-server",
+  "description": "An MCP server for querying astrological data.",
+  "version": "0.0.1",
+  "author": {
+    "name": "Simpolism",
+    "email": "simpolism@gmail.com",
+    "github": "https://github.com/simpolism"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/simpolism/AstroMCP.git"
+  },
+  "module": "main.ts",
+  "type": "module",
+  "bin": {
+    "astrology-mcp-server": "dist/main.js"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "prebuild": "bun scripts/prebuild.ts",
+    "build": "bun build ./src/main.ts --outdir dist --target node && chmod +x dist/main.js",
+    "start": "bun run dist/main.ts",
+    "test": "bun test",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build",
+    "lint": "bunx biome lint --write src",
+    "format": "bunx biome format --write src",
+    "check": "bunx biome check --write src",
+    "update-version": "sed -i '' -e 's/export const VERSION = .*/export const VERSION = '\"'$(node -p 'require(\"./package.json\").version')'\"';/' src/main.ts"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.1.1",
+    "@types/json-schema": "^7.0.15",
+    "chart2txt": "^0.3.1",
+    "pretty-js-log": "^1.1.1",
+    "zod": "^3.24.1",
+    "zod-to-json-schema": "^3.24.1"
+  }
+}
